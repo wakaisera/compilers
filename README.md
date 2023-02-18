@@ -137,7 +137,7 @@ T : '[a-zA-Z]' T | '[0-9]' T | ε;
     T -> ◉;
   }
 ```
-![Alt text](first.svg)  
+![Alt text](lab-1/first.svg)  
 2)  
 S : T | '-' T;  
 T : [0-9] T | [0-9] | '.' T2 | [0-9] F | 'e' E | 'E' E;  
@@ -177,4 +177,4 @@ digraph G {
     F -> ◉ [label="[F | L | f | l]"];
   }
 ```
-![Alt text](second.svg)
+![Alt text](lab-1/second.svg)
