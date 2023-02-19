@@ -1,19 +1,12 @@
 package examples
 
-func findSubstring(str string, subStr string) bool {
-    r := []rune(str)
-    sr := []rune(subStr)
-    if len(sr) == 0 {
+func findSubstring(str string, match string) bool {
+    if len(str) < len(match) {
         return false
     }
-str:
-    for i, ru := range r {
-        if ru == sr[0] {
-            for j, x := range sr[1:] {
-                if r[i+j+1] != x {
-                    continue str
-                }
-            }
+    for i := 0; i <= len(str)-len(match); i++ {
+        subStr := str[i : i+len(match)]
+        if subStr == match {
             return true
         }
     }
