@@ -44,4 +44,14 @@ TEST(Lexer, HelloWorld) {
         "world!!\"'\nLoc=<7:29>\tR_PAREN ')'\nLoc=<8:0>\tR_CURLY '}'\n");
 }
 
+TEST(Lexer, InvalidTokens) {
+    std::stringstream in("$@~");
+    std::stringstream out;
+    dump_tokens(in, out);
+    EXPECT_EQ(
+        out.str(),
+        "Loc=<1:0>\tINVALID '$'\nLoc=<1:1>\tINVALID '@'\nLoc=<1:2>\tINVALID "
+        "'~'\n");
+}
+
 } // namespace go::test
