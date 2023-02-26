@@ -17,7 +17,7 @@ TEST(Lexer, ValidNumbers) {
         "Loc=<1:0>\tINTEGER_LIT '0'\nLoc=<1:2>\tINTEGER_LIT '123456789'\n");
 }
 
-TEST(Lexer, IdentifiersAndComments) {
+TEST(Lexer, ValidTokens) {
     std::stringstream in("/* hmmm*))=) */id value // woooah\n15");
     std::stringstream out;
     dump_tokens(in, out);

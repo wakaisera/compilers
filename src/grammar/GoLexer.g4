@@ -90,13 +90,10 @@ LINE_COMMENT: '//' ~[\r\n]* -> skip;
 NEWLINE: ('\r\n' | [\r\n]) -> skip;
 
 // Literals
-// '\'' ( ~['\\\n\r\t] | '\\' ['nrt\\0] ) '\'' ;
-CHAR_LIT : '\'' ('\'\'' | ~ ('\'')) '\'';
-
-// '"' ( ~["] | '\\' ["nrt\\0] )* '"' ;
-STRING_LIT : '"' ('""' | ~ ('"'))* '"';
-
+CHAR_LIT : '\'' ( ~['\\\n\r\t] | '\\' ['nrt\\0] ) '\'' ;
+STRING_LIT : '"' ( ~["] | '\\' ["nrt\\0] )* '"' ;
 INTEGER_LIT : [+-]? DEC_LIT;
-DEC_LIT: DEC_DIGIT (DEC_DIGIT | '_')*;
+DEC_LIT: ('0' | DEC_DIGIT_NO_ZERO (DEC_DIGIT)*);
 
 fragment DEC_DIGIT: [0-9];
+fragment DEC_DIGIT_NO_ZERO: [1-9];
