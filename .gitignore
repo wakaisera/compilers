@@ -1,3 +1,19 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+build_*/
+[Bb]in/
+[Oo]bj/
+[Tt]esting/
+
+# CMake
+cmake-build-*/
+
+# Visual Studio Code
+.vscode/
+
 # Prerequisites
 *.d
 
@@ -30,3 +46,6 @@
 *.exe
 *.out
 *.app
+
+# jar
+*.jar
