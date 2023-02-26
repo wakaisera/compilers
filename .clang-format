@@ -6,7 +6,7 @@ AlignAfterOpenBracket: AlwaysBreak
 AlignArrayOfStructures: None
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
-AlignConsecutiveBitFields: None
+AlignConsecutiveBitFields: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: Left
 AlignOperands:   DontAlign
