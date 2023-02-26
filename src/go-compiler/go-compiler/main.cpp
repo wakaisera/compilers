@@ -1,3 +1,3 @@
-#include <libgo/lexer.hpp>
+#include <libgo/dump_tokens.hpp>
 
 int main() { return 0; }
