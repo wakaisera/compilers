@@ -7,4 +7,4 @@ set_compile_options(${target_name})
 
 target_sources(${target_name} PRIVATE go-compiler/main.cpp)
 
-target_link_libraries(${target_name} PRIVATE go)
+target_link_libraries(${target_name} PRIVATE go CLI11)
