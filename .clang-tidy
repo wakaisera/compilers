@@ -11,10 +11,11 @@ Checks: '
   -cppcoreguidelines-owning-memory,
   -google-runtime-references,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
-  -cppcoreguidelines-avoid-magic-number,
+  -cppcoreguidelines-avoid-magic-numbers,
   -readability-magic-numbers,
   -bugprone-exception-escape,
-  -altera-*
+  -altera-*,
+  -readability-identifier-length
   '
 WarningsAsErrors: true
 HeaderFilterRegex: ''
