@@ -18,7 +18,7 @@ Checks: '
   -readability-identifier-length
   '
 WarningsAsErrors: true
-HeaderFilterRegex: ''
+HeaderFilterRegex: '(go-parser/*|libgo/*)'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
 User:            kirrryu
