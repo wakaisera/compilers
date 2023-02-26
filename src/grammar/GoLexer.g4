@@ -97,3 +97,5 @@ DEC_LIT: ('0' | DEC_DIGIT_NO_ZERO (DEC_DIGIT)*);
 
 fragment DEC_DIGIT: [0-9];
 fragment DEC_DIGIT_NO_ZERO: [1-9];
+
+INVALID: .;
