@@ -5,7 +5,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iterator>
 
 namespace go::test {
 
@@ -31,11 +30,8 @@ TEST(Lexer, IdentifiersAndComments) {
 TEST(Lexer, HelloWorld) {
     const std::filesystem::path path(c_absolute_path);
     std::ifstream example_file(path / "examples/helloworld.go");
-    std::stringstream in(
-        {std::istreambuf_iterator<char>(example_file),
-         std::istreambuf_iterator<char>()});
     std::stringstream out;
-    dump_tokens(in, out);
+    dump_tokens(example_file, out);
     EXPECT_EQ(
         out.str(),
         "Loc=<1:0>\tPACKAGE 'package'\nLoc=<1:8>\tIDENTIFIER "
