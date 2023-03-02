@@ -35,12 +35,14 @@ TEST(Lexer, HelloWorld) {
     EXPECT_EQ(
         out.str(),
         "Loc=<1:0>\tPACKAGE 'package'\nLoc=<1:8>\tIDENTIFIER "
-        "'examples'\nLoc=<3:0>\tIMPORT 'import'\nLoc=<3:7>\tSTRING_LIT "
+        "'examples'\nLoc=<3:0>\tIMPORT "
+        "'import'\nLoc=<3:7>\tINTERPRETED_STRING_LIT "
         "'\"fmt\"'\nLoc=<6:0>\tFUNC 'func'\nLoc=<6:5>\tIDENTIFIER "
         "'main'\nLoc=<6:9>\tL_PAREN '('\nLoc=<6:10>\tR_PAREN "
         "')'\nLoc=<6:12>\tL_CURLY '{'\nLoc=<7:1>\tIDENTIFIER "
         "'fmt'\nLoc=<7:4>\tDOT '.'\nLoc=<7:5>\tIDENTIFIER "
-        "'Println'\nLoc=<7:12>\tL_PAREN '('\nLoc=<7:13>\tSTRING_LIT '\"hello, "
+        "'Println'\nLoc=<7:12>\tL_PAREN "
+        "'('\nLoc=<7:13>\tINTERPRETED_STRING_LIT '\"hello, "
         "world!!\"'\nLoc=<7:29>\tR_PAREN ')'\nLoc=<8:0>\tR_CURLY '}'\n");
 }
 
