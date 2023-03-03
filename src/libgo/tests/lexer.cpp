@@ -56,4 +56,21 @@ TEST(Lexer, InvalidTokens) {
         "'~'\n");
 }
 
+TEST(Lexer, InvalidSymbol) {
+    const std::filesystem::path path(c_absolute_path);
+    std::ifstream example_file(path / "examples/strange_string.go");
+    std::stringstream out;
+    dump_tokens(example_file, out);
+    EXPECT_EQ(
+        out.str(),
+        "Loc=<1:0>\tPACKAGE 'package'\nLoc=<1:8>\tIDENTIFIER "
+        "'examples'\nLoc=<3:0>\tFUNC 'func'\nLoc=<3:5>\tIDENTIFIER "
+        "'main'\nLoc=<3:9>\tL_PAREN '('\nLoc=<3:10>\tR_PAREN "
+        "')'\nLoc=<3:12>\tL_CURLY '{'\nLoc=<4:1>\tIDENTIFIER "
+        "'str'\nLoc=<4:5>\tDECLARE_ASSIGN ':='\nLoc=<4:8>\tINVALID "
+        "'\"'\nLoc=<4:9>\tIDENTIFIER 'hello'\nLoc=<4:14>\tINVALID "
+        "'\\'\nLoc=<4:15>\tINTEGER_LIT '0'\nLoc=<4:16>\tINVALID "
+        "'\"'\nLoc=<4:17>\tSEMI ';'\nLoc=<5:0>\tR_CURLY '}'\n");
+}
+
 } // namespace go::test
