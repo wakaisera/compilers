@@ -1,5 +1,5 @@
 package examples
 
 func main() {
-	str := "hello\0";
+	str := "hello\0"
 }

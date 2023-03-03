@@ -93,7 +93,7 @@ NEWLINE: ('\r\n' | [\r\n]) -> skip;
 // CHAR_LIT : '\'' (~[\n\\] | ESCAPED_VALUE) '\'';
 
 RAW_STRING_LIT: '`' ~'`'* '`';
-INTERPRETED_STRING_LIT: '"' (~["\\] | ESCAPED_VALUE)*  '"';
+INTERPRETED_STRING_LIT: '"' (~["\\] | ESCAPED_VALUE | NULL_TERMINAL)*  '"';
 
 INTEGER_LIT : [+-]? DEC_LIT;
 DEC_LIT: ('0' | DEC_DIGIT_NO_ZERO (DEC_DIGIT)*);
@@ -102,5 +102,7 @@ fragment DEC_DIGIT: [0-9];
 fragment DEC_DIGIT_NO_ZERO: [1-9];
 
 fragment ESCAPED_VALUE: '\\' [abfnrtv\\'"];
+
+fragment NULL_TERMINAL: '\\000';
 
 INVALID: .;

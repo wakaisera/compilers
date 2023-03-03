@@ -70,7 +70,7 @@ TEST(Lexer, InvalidSymbol) {
         "'str'\nLoc=<4:5>\tDECLARE_ASSIGN ':='\nLoc=<4:8>\tINVALID "
         "'\"'\nLoc=<4:9>\tIDENTIFIER 'hello'\nLoc=<4:14>\tINVALID "
         "'\\'\nLoc=<4:15>\tINTEGER_LIT '0'\nLoc=<4:16>\tINVALID "
-        "'\"'\nLoc=<4:17>\tSEMI ';'\nLoc=<5:0>\tR_CURLY '}'\n");
+        "'\"'\nLoc=<5:0>\tR_CURLY '}'\n");
 }
 
 } // namespace go::test
