@@ -7,8 +7,10 @@ find_package(ANTLR REQUIRED)
 set(antlr_grammar_target_name Antlr${grammar_lib_name})
 antlr_target(
   ${antlr_grammar_target_name}
-  GoLexer.g4
+  Go.g4
   LEXER
+  PARSER
+  VISITOR
 )
 
 set_target_properties(
