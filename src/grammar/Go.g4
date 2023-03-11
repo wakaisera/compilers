@@ -4,29 +4,25 @@ grammar Go;
  *  PARSER
  */
 
-eos: SEMI | EOF;
+program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* ((functionDecl | declaration) (SEMI | EOF))* EOF;
 
-sourceFile: packageClause eos (importDecl eos)* ((functionDecl | methodDecl | declaration) eos)* EOF;
+packageName: IDENTIFIER;
 
-packageClause: PACKAGE packageName = IDENTIFIER;
+packageClause: PACKAGE packageName;
 
-importDecl: IMPORT (importSpec | L_PAREN (importSpec eos)* R_PAREN);
+importDecl: IMPORT (string | L_PAREN (string (SEMI | EOF))* R_PAREN);
 
-importSpec: (DOT | IDENTIFIER)? (RAW_STRING_LIT | INTERPRETED_STRING_LIT);
+string: RAW_STRING_LIT | INTERPRETED_STRING_LIT;
 
-declaration: constDecl | typeDecl | varDecl;
+declaration: constDecl | varDecl;
 
-constDecl: CONST (constSpec | L_PAREN (constSpec eos)* R_PAREN);
+constDecl: CONST (constSpec | L_PAREN (constSpec (SEMI | EOF))* R_PAREN);
 
 constSpec: identifierList (type_? ASSIGN expressionList)?;
 
 identifierList: IDENTIFIER (COMMA IDENTIFIER)*;
 
 expressionList: expression (COMMA expression)*;
-
-typeDecl: TYPE (typeSpec | L_PAREN (typeSpec eos)* R_PAREN);
-
-typeSpec: IDENTIFIER ASSIGN? type_;
 
 expression:
 	primaryExpr
@@ -39,41 +35,23 @@ expression:
 
 primaryExpr:
     operand
-	| conversion
-	| methodExpr
-	| primaryExpr ((DOT IDENTIFIER) | index | slice | typeAssertion | arguments);
+	| primaryExpr ((DOT IDENTIFIER) | index | typeAssertion | arguments);
 
 index: L_BRACKET expression R_BRACKET;
 
-slice:
-    L_BRACKET (expression? COLON expression? |
-    expression? COLON expression COLON expression) R_BRACKET;
-
 typeAssertion: DOT L_PAREN type_ R_PAREN;
 
-arguments: L_PAREN ((expressionList | nonNamedType (COMMA expressionList)?) ELLIPSIS? COMMA?)? R_PAREN;
-
-methodExpr: nonNamedType DOT IDENTIFIER;
+arguments: L_PAREN (expressionList ELLIPSIS? COMMA?)? R_PAREN;
 
 operand: literal | operandName | L_PAREN expression R_PAREN;
 
-literal: basicLit | compositeLit | functionLit;
+literal: basicLit | functionLit;
 
-basicLit: NIL_LIT | INTEGER_LIT | (RAW_STRING_LIT | INTERPRETED_STRING_LIT);
+basicLit: NIL_LIT | INTEGER_LIT | string;
 
 operandName: IDENTIFIER;
 
-qualifiedIdent: IDENTIFIER DOT IDENTIFIER;
-
-compositeLit: literalType literalValue;
-
-literalType:
-	structType
-	| arrayType
-	| L_BRACKET ELLIPSIS R_BRACKET elementType
-	| sliceType
-	| mapType
-	| typeName;
+qualifiedIdent: packageName DOT IDENTIFIER;
 
 literalValue: L_CURLY (elementList COMMA?)? R_CURLY;
 
@@ -85,29 +63,21 @@ key: expression | literalValue;
 
 element: expression | literalValue;
 
-structType: STRUCT L_CURLY (fieldDecl eos)* R_CURLY;
-
-fieldDecl: (identifierList type_ | embeddedField) tag = (RAW_STRING_LIT | INTERPRETED_STRING_LIT)?;
-
-embeddedField: STAR? typeName;
-
 functionLit: FUNC signature block;
 
 // Function declarations
 
 functionDecl: FUNC IDENTIFIER (signature block?);
 
-methodDecl: FUNC receiver IDENTIFIER (signature block?);
-
 receiver: parameters;
 
-varDecl: VAR (varSpec | L_PAREN (varSpec eos)* R_PAREN);
+varDecl: VAR (varSpec | L_PAREN (varSpec (SEMI | EOF))* R_PAREN);
 
 varSpec: identifierList (type_ (ASSIGN expressionList)?	| ASSIGN expressionList);
 
 block: L_CURLY statementList? R_CURLY;
 
-statementList: (SEMI? statement eos)+;
+statementList: (SEMI? statement (SEMI | EOF))+;
 
 statement:
 	declaration
@@ -145,8 +115,6 @@ assign_op: (PLUS | MINUS | OR | CARET | STAR | DIV | MOD | LSHIFT | RSHIFT | AMP
 
 shortVarDecl: identifierList DECLARE_ASSIGN expressionList;
 
-emptyStmt: EOS | SEMI;
-
 labeledStmt: IDENTIFIER COLON statement?;
 
 returnStmt: RETURN expressionList?;
@@ -162,20 +130,20 @@ fallthroughStmt: FALLTHROUGH;
 deferStmt: DEFER expression;
 
 ifStmt:
-    IF (expression | eos expression | simpleStmt eos expression ) block
+    IF (expression | (SEMI | EOF) expression | simpleStmt (SEMI | EOF) expression ) block
     (ELSE (ifStmt | block))?;
 
 switchStmt: exprSwitchStmt | typeSwitchStmt;
 
-exprSwitchStmt: SWITCH (expression? | simpleStmt? eos expression?) L_CURLY exprCaseClause* R_CURLY;
+exprSwitchStmt: SWITCH (expression? | simpleStmt? (SEMI | EOF) expression?) L_CURLY exprCaseClause* R_CURLY;
 
 exprCaseClause: exprSwitchCase COLON statementList?;
 
 exprSwitchCase: CASE expressionList | DEFAULT;
 
 typeSwitchStmt:
-    SWITCH (typeSwitchGuard | eos typeSwitchGuard |
-    simpleStmt eos typeSwitchGuard) L_CURLY typeCaseClause* R_CURLY;
+    SWITCH (typeSwitchGuard | (SEMI | EOF) typeSwitchGuard |
+    simpleStmt (SEMI | EOF) typeSwitchGuard) L_CURLY typeCaseClause* R_CURLY;
 
 typeSwitchGuard: (IDENTIFIER DECLARE_ASSIGN)? primaryExpr DOT L_PAREN TYPE R_PAREN;
 
@@ -195,7 +163,7 @@ recvStmt: (expressionList ASSIGN | identifierList DECLARE_ASSIGN)? recvExpr = ex
 
 forStmt: FOR (expression? | forClause | rangeClause?) block;
 
-forClause: initStmt = simpleStmt? eos expression? eos postStmt = simpleStmt?;
+forClause: initStmt = simpleStmt? (SEMI | EOF) expression? (SEMI | EOF) postStmt = simpleStmt?;
 
 rangeClause: (expressionList ASSIGN | identifierList DECLARE_ASSIGN )? RANGE expression;
 
@@ -207,31 +175,13 @@ typeName: qualifiedIdent | IDENTIFIER;
 
 typeLit:
 	arrayType
-	| structType
-	| pointerType
-	| functionType
-	| interfaceType
-	| sliceType
-	| mapType
-	| channelType;
+	| functionType;
 
 arrayType: L_BRACKET arrayLength R_BRACKET elementType;
 
 arrayLength: expression;
 
 elementType: type_;
-
-pointerType: STAR type_;
-
-interfaceType: INTERFACE L_CURLY ((methodSpec | typeName) eos)* R_CURLY;
-
-sliceType: L_BRACKET R_BRACKET elementType;
-
-mapType: MAP L_BRACKET type_ R_BRACKET elementType;
-
-channelType: (CHAN | CHAN RECEIVE | RECEIVE CHAN) elementType;
-
-methodSpec: IDENTIFIER parameters result | IDENTIFIER parameters;
 
 functionType: FUNC signature;
 
@@ -242,11 +192,6 @@ result: parameters | type_;
 parameters: L_PAREN (parameterDecl (COMMA parameterDecl)* COMMA?)? R_PAREN;
 
 parameterDecl: identifierList? ELLIPSIS? type_;
-
-conversion: nonNamedType L_PAREN expression COMMA? R_PAREN;
-
-nonNamedType: typeLit | L_PAREN nonNamedType R_PAREN;
-
 
 /*
  *  LEXER
@@ -342,7 +287,6 @@ LINE_COMMENT: '//' ~[\r\n]* -> skip;
 NEWLINE: ('\r\n' | [\r\n]) -> skip;
 
 // Literals
-// CHAR_LIT: '\'' (~[\n\\] | ESCAPED_VALUE) '\'';
 
 RAW_STRING_LIT: '`' ~'`'* '`';
 INTERPRETED_STRING_LIT: '"' (~["\\] | ESCAPED_VALUE | NULL_TERMINAL)*  '"';
