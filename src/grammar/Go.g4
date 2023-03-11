@@ -4,7 +4,8 @@ grammar Go;
  *  PARSER
  */
 
-program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* ((functionDecl | declaration) (SEMI | EOF))* EOF;
+// program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* ((functionDecl | declaration) (SEMI | EOF))* EOF;
+program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* (functionDecl (SEMI | EOF))* EOF;
 
 packageName: IDENTIFIER;
 
@@ -14,184 +15,66 @@ importDecl: IMPORT (string | L_PAREN (string (SEMI | EOF))* R_PAREN);
 
 string: RAW_STRING_LIT | INTERPRETED_STRING_LIT;
 
-declaration: constDecl | varDecl;
+// Function declarations
 
-constDecl: CONST (constSpec | L_PAREN (constSpec (SEMI | EOF))* R_PAREN);
+// finish it!!!
+statement: NIL_LIT;
 
-constSpec: identifierList (type_? ASSIGN expressionList)?;
+statementList: (SEMI? statement (SEMI | EOF))+;
 
-identifierList: IDENTIFIER (COMMA IDENTIFIER)*;
+block: L_CURLY statementList? R_CURLY;
 
-expressionList: expression (COMMA expression)*;
+
+operandName: IDENTIFIER;
+
+literal: NIL_LIT | INTEGER_LIT | string;
+
+operand: literal | operandName | L_PAREN expression R_PAREN;
+
+index: L_BRACKET expression R_BRACKET;
+
+arguments: L_PAREN (expressionList ELLIPSIS? COMMA?)? R_PAREN;
+
+primaryExpr: operand | primaryExpr ((DOT IDENTIFIER) | index | arguments);
 
 expression:
 	primaryExpr
 	| unary_op = (PLUS | MINUS | EXCLAMATION | CARET | STAR | AMPERSAND | RECEIVE) expression
-	| expression mul_op = (STAR	| DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | BIT_CLEAR) expression
+	| expression mul_op = (STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | BIT_CLEAR) expression
 	| expression add_op = (PLUS | MINUS | OR | CARET) expression
 	| expression rel_op = (EQUALS | NOT_EQUALS | LESS | LESS_OR_EQUALS | GREATER | GREATER_OR_EQUALS) expression
 	| expression LOGICAL_AND expression
 	| expression LOGICAL_OR expression;
 
-primaryExpr:
-    operand
-	| primaryExpr ((DOT IDENTIFIER) | index | typeAssertion | arguments);
-
-index: L_BRACKET expression R_BRACKET;
-
-typeAssertion: DOT L_PAREN type_ R_PAREN;
-
-arguments: L_PAREN (expressionList ELLIPSIS? COMMA?)? R_PAREN;
-
-operand: literal | operandName | L_PAREN expression R_PAREN;
-
-literal: basicLit | functionLit;
-
-basicLit: NIL_LIT | INTEGER_LIT | string;
-
-operandName: IDENTIFIER;
-
-qualifiedIdent: packageName DOT IDENTIFIER;
-
-literalValue: L_CURLY (elementList COMMA?)? R_CURLY;
-
-elementList: keyedElement (COMMA keyedElement)*;
-
-keyedElement: (key COLON)? element;
-
-key: expression | literalValue;
-
-element: expression | literalValue;
-
-functionLit: FUNC signature block;
-
-// Function declarations
-
-functionDecl: FUNC IDENTIFIER (signature block?);
-
-receiver: parameters;
-
-varDecl: VAR (varSpec | L_PAREN (varSpec (SEMI | EOF))* R_PAREN);
-
-varSpec: identifierList (type_ (ASSIGN expressionList)?	| ASSIGN expressionList);
-
-block: L_CURLY statementList? R_CURLY;
-
-statementList: (SEMI? statement (SEMI | EOF))+;
-
-statement:
-	declaration
-	| labeledStmt
-	| simpleStmt
-	| goStmt
-	| returnStmt
-	| breakStmt
-	| continueStmt
-	| gotoStmt
-	| fallthroughStmt
-	| block
-	| ifStmt
-	| switchStmt
-	| selectStmt
-	| forStmt
-	| deferStmt;
-
-simpleStmt:
-	sendStmt
-	| incDecStmt
-	| assignment
-	| expressionStmt
-	| shortVarDecl;
-
-expressionStmt: expression;
-
-sendStmt: channel = expression RECEIVE expression;
-
-incDecStmt: expression (PLUS_PLUS | MINUS_MINUS);
-
-assignment: expressionList assign_op expressionList;
-
-assign_op: (PLUS | MINUS | OR | CARET | STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | BIT_CLEAR)? ASSIGN;
-
-shortVarDecl: identifierList DECLARE_ASSIGN expressionList;
-
-labeledStmt: IDENTIFIER COLON statement?;
-
-returnStmt: RETURN expressionList?;
-
-breakStmt: BREAK IDENTIFIER?;
-
-continueStmt: CONTINUE IDENTIFIER?;
-
-gotoStmt: GOTO IDENTIFIER;
-
-fallthroughStmt: FALLTHROUGH;
-
-deferStmt: DEFER expression;
-
-ifStmt:
-    IF (expression | (SEMI | EOF) expression | simpleStmt (SEMI | EOF) expression ) block
-    (ELSE (ifStmt | block))?;
-
-switchStmt: exprSwitchStmt | typeSwitchStmt;
-
-exprSwitchStmt: SWITCH (expression? | simpleStmt? (SEMI | EOF) expression?) L_CURLY exprCaseClause* R_CURLY;
-
-exprCaseClause: exprSwitchCase COLON statementList?;
-
-exprSwitchCase: CASE expressionList | DEFAULT;
-
-typeSwitchStmt:
-    SWITCH (typeSwitchGuard | (SEMI | EOF) typeSwitchGuard |
-    simpleStmt (SEMI | EOF) typeSwitchGuard) L_CURLY typeCaseClause* R_CURLY;
-
-typeSwitchGuard: (IDENTIFIER DECLARE_ASSIGN)? primaryExpr DOT L_PAREN TYPE R_PAREN;
-
-typeCaseClause: typeSwitchCase COLON statementList?;
-
-typeSwitchCase: CASE typeList | DEFAULT;
-
-typeList: (type_ | NIL_LIT) (COMMA (type_ | NIL_LIT))*;
-
-selectStmt: SELECT L_CURLY commClause* R_CURLY;
-
-commClause: commCase COLON statementList?;
-
-commCase: CASE (sendStmt | recvStmt) | DEFAULT;
-
-recvStmt: (expressionList ASSIGN | identifierList DECLARE_ASSIGN)? recvExpr = expression;
-
-forStmt: FOR (expression? | forClause | rangeClause?) block;
-
-forClause: initStmt = simpleStmt? (SEMI | EOF) expression? (SEMI | EOF) postStmt = simpleStmt?;
-
-rangeClause: (expressionList ASSIGN | identifierList DECLARE_ASSIGN )? RANGE expression;
-
-goStmt: GO expression;
-
-type_: typeName | typeLit | L_PAREN type_ R_PAREN;
-
-typeName: qualifiedIdent | IDENTIFIER;
-
-typeLit:
-	arrayType
-	| functionType;
-
-arrayType: L_BRACKET arrayLength R_BRACKET elementType;
+expressionList: expression (COMMA expression)*;
 
 arrayLength: expression;
 
-elementType: type_;
+elementType: type;
+
+arrayType: L_BRACKET arrayLength R_BRACKET elementType;
 
 functionType: FUNC signature;
 
-signature: parameters result | parameters;
+typeLit: arrayType | functionType;
 
-result: parameters | type_;
+qualifiedIdent: packageName DOT IDENTIFIER;
+
+typeName: qualifiedIdent | IDENTIFIER;
+
+type: typeName | typeLit | L_PAREN type R_PAREN;
+
+identifierList: IDENTIFIER (COMMA IDENTIFIER)*;
+
+parameterDecl: identifierList? ELLIPSIS? type;
 
 parameters: L_PAREN (parameterDecl (COMMA parameterDecl)* COMMA?)? R_PAREN;
 
-parameterDecl: identifierList? ELLIPSIS? type_;
+result: parameters | type;
+
+signature: parameters result?;
+
+functionDecl: FUNC IDENTIFIER (signature block?);
 
 /*
  *  LEXER
