@@ -1,33 +1,98 @@
 grammar Go;
 
 /*
- *  PARSER
+ * PARSER
  */
 
-// program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* ((functionDecl | declaration) (SEMI | EOF))* EOF;
-program: packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* (functionDecl (SEMI | EOF))* EOF;
+program:
+	packageClause (SEMI | EOF) (importDecl (SEMI | EOF))* (
+		(functionDecl | declaration) (SEMI | EOF)
+	)* EOF;
 
 packageName: IDENTIFIER;
 
 packageClause: PACKAGE packageName;
 
-importDecl: IMPORT (string | L_PAREN (string (SEMI | EOF))* R_PAREN);
+importDecl:
+	IMPORT (
+		importPath
+		| L_PAREN (importPath (SEMI | EOF))* R_PAREN
+	);
 
-string: RAW_STRING_LIT | INTERPRETED_STRING_LIT;
+importPath: RAW_STRING_LIT | INTERPRETED_STRING_LIT;
 
 // Function declarations
 
-// finish it!!!
-statement: NIL_LIT;
+shortVarDecl: identifierList DECLARE_ASSIGN expressionList;
+
+expressionStmt: expression;
+
+assign_op: (PLUS | MINUS | STAR | DIV | MOD)? ASSIGN;
+
+assignment: expressionList assign_op expressionList;
+
+incDecStmt: expression (PLUS_PLUS | MINUS_MINUS);
+
+simpleStmt:
+	incDecStmt
+	| assignment
+	| expressionStmt
+	| shortVarDecl;
+
+varSpec:
+	identifierList (
+		type (ASSIGN expressionList)?
+		| ASSIGN expressionList
+	);
+
+varDecl:
+	VAR (varSpec | L_PAREN (varSpec (SEMI | EOF))* R_PAREN);
+
+constSpec: identifierList (type? ASSIGN expressionList)?;
+
+constDecl:
+	CONST (constSpec | L_PAREN (constSpec (SEMI | EOF))* R_PAREN);
+
+declaration: constDecl | varDecl;
+
+forClause:
+	initStmt = simpleStmt? (SEMI | EOF) expression? (SEMI | EOF) postStmt = simpleStmt?;
+
+rangeClause: (
+		expressionList ASSIGN
+		| identifierList DECLARE_ASSIGN
+	)? RANGE expression;
+
+forStmt: FOR (expression? | forClause | rangeClause?) block;
+
+ifStmt:
+	IF (
+		expression
+		| (SEMI | EOF) expression
+		| simpleStmt (SEMI | EOF) expression
+	) block (ELSE (ifStmt | block))?;
+
+returnStmt: RETURN expressionList?;
+
+statement:
+	declaration
+	| simpleStmt
+	| returnStmt
+	| ifStmt
+	| forStmt;
 
 statementList: (SEMI? statement (SEMI | EOF))+;
 
 block: L_CURLY statementList? R_CURLY;
 
-
 operandName: IDENTIFIER;
 
-literal: NIL_LIT | INTEGER_LIT | string;
+basicType:
+	INTEGER_LIT
+	| RAW_STRING_LIT
+	| INTERPRETED_STRING_LIT;
+
+literal: NIL_LIT | basicType;
 
 operand: literal | operandName | L_PAREN expression R_PAREN;
 
@@ -35,49 +100,53 @@ index: L_BRACKET expression R_BRACKET;
 
 arguments: L_PAREN (expressionList ELLIPSIS? COMMA?)? R_PAREN;
 
-primaryExpr: operand | primaryExpr ((DOT IDENTIFIER) | index | arguments);
+primaryExpr:
+	operand
+	| primaryExpr ((DOT IDENTIFIER) | index | arguments);
 
 expression:
 	primaryExpr
-	| unary_op = (PLUS | MINUS | EXCLAMATION | CARET | STAR | AMPERSAND | RECEIVE) expression
-	| expression mul_op = (STAR | DIV | MOD | LSHIFT | RSHIFT | AMPERSAND | BIT_CLEAR) expression
-	| expression add_op = (PLUS | MINUS | OR | CARET) expression
-	| expression rel_op = (EQUALS | NOT_EQUALS | LESS | LESS_OR_EQUALS | GREATER | GREATER_OR_EQUALS) expression
+	| unary_op = (PLUS | MINUS | EXCLAMATION | STAR) expression
+	| expression mul_op = (STAR | DIV | MOD) expression
+	| expression add_op = (PLUS | MINUS) expression
+	| expression rel_op = (
+		EQUALS
+		| NOT_EQUALS
+		| LESS
+		| LESS_OR_EQUALS
+		| GREATER
+		| GREATER_OR_EQUALS
+	) expression
 	| expression LOGICAL_AND expression
 	| expression LOGICAL_OR expression;
 
 expressionList: expression (COMMA expression)*;
 
-arrayLength: expression;
+arrayLength: INTEGER_LIT;
 
-elementType: type;
+arrayType: L_BRACKET arrayLength R_BRACKET basicType;
 
-arrayType: L_BRACKET arrayLength R_BRACKET elementType;
+// qualifiedIdent: packageName DOT IDENTIFIER; ???
 
-functionType: FUNC signature;
+// typeName: qualifiedIdent | basicType;
 
-typeLit: arrayType | functionType;
-
-qualifiedIdent: packageName DOT IDENTIFIER;
-
-typeName: qualifiedIdent | IDENTIFIER;
-
-type: typeName | typeLit | L_PAREN type R_PAREN;
+type: basicType | arrayType | L_PAREN type R_PAREN;
 
 identifierList: IDENTIFIER (COMMA IDENTIFIER)*;
 
 parameterDecl: identifierList? ELLIPSIS? type;
 
-parameters: L_PAREN (parameterDecl (COMMA parameterDecl)* COMMA?)? R_PAREN;
+parameters:
+	L_PAREN (parameterDecl (COMMA parameterDecl)* COMMA?)? R_PAREN;
 
-result: parameters | type;
+result: parameters | basicType;
 
 signature: parameters result?;
 
 functionDecl: FUNC IDENTIFIER (signature block?);
 
 /*
- *  LEXER
+ * LEXER
  */
 
 // Keywords
@@ -165,14 +234,15 @@ RSHIFTEQ: '>>=';
 
 // Tokens we skip~
 WHITESPACE: [ \t]+ -> skip;
-COMMENT: '/*' ~[\r\n]*? '*/'-> skip;
+COMMENT: '/*' ~[\r\n]*? '*/' -> skip;
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 NEWLINE: ('\r\n' | [\r\n]) -> skip;
 
 // Literals
 
 RAW_STRING_LIT: '`' ~'`'* '`';
-INTERPRETED_STRING_LIT: '"' (~["\\] | ESCAPED_VALUE | NULL_TERMINAL)*  '"';
+INTERPRETED_STRING_LIT:
+	'"' (~["\\] | ESCAPED_VALUE | NULL_TERMINAL)* '"';
 
 INTEGER_LIT: [+-]? DEC_LIT;
 DEC_LIT: ('0' | DEC_DIGIT_NO_ZERO (DEC_DIGIT)*);

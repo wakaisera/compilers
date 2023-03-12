@@ -26,7 +26,6 @@ private:
     PackageClause *package_clause_ = nullptr;
     ImportDecl *import_decl_ = nullptr;
     FunctionDecl *function_decl_ = nullptr;
-    // MethodDecl *method_decl_ = nullptr;
     Declaration *declaration_ = nullptr;
 
 public:
@@ -76,29 +75,78 @@ public:
     void accept(Visitor &visitor) override;
 };
 
-class String final : public Node {
+class ImportPath final : public Node {
 private:
     std::string text_;
 
 public:
-    explicit String(std::string text) : text_(std::move(text)) {}
-    const std::string &text() const { return text_; }
-    void accept(Visitor &visitor) override;
-};
-
-class ImportSpec final : public Node {
-private:
-    std::string text_;
-
-public:
-    explicit ImportSpec(std::string text) : text_(std::move(text)) {}
+    explicit ImportPath(std::string text) : text_(std::move(text)) {}
     const std::string &text() const { return text_; }
     void accept(Visitor &visitor) override;
 };
 
 class ImportDecl final : public Node {
 private:
-    ImportSpec *import_spec_;
+    ImportPath *import_path_;
+
+public:
+    explicit ImportDecl(ImportPath *import_path)
+        : import_path_(std::move(import_path)) {}
+    ImportPath *import_spec() const { return import_path_; }
+    void accept(Visitor &visitor) override;
 };
+
+class Type : public Node {
+public:
+    virtual ~Type() = default;
+    virtual void accept(Visitor &visitor) = 0;
+};
+
+class BasicType final : public Type {
+private:
+    std::string text_;
+
+public:
+    explicit BasicType(std::string text) : text_(std::move(text)) {}
+    const std::string &text() const { return text_; }
+    void accept(Visitor &visitor) override;
+};
+
+class ArrayLength final: public Node {};
+
+class ArrayType final : public Type {
+private:
+    ArrayLength *array_length_;
+    BasicType *basic_type_;
+
+public:
+    ArrayType(ArrayLength *array_length, BasicType *basic_type)
+        : array_length_(std::move(array_length)),
+          basic_type_(std::move(basic_type)) {}
+    ArrayLength *array_length() { return array_length_; }
+    BasicType *basic_type() { return basic_type_; }
+    void accept(Visitor &visitor) override;
+};
+
+// class QualifiedIdent final : public Node {
+// private:
+//     PackageName *package_name_;
+
+// public:
+//     explicit QualifiedIdent(PackageName *package_name)
+//         : package_name_(std::move(package_name)) {}
+//     PackageName *package_name() const { return package_name_; }
+//     void accept(Visitor &visitor) override;
+// };
+
+// class TypeName final : public Node {
+// private:
+//     QualifiedIdent *qualified_ident_;
+// public:
+//     explicit TypeName(QualifiedIdent *qualified_ident)
+//         : qualified_ident_(std::move(qualified_ident)) {}
+//     QualifiedIdent *qualified_ident() const { return qualified_ident_; }
+//     void accept(Visitor &visitor) override;
+// };
 
 } // namespace go::ast

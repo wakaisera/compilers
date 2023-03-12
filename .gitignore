@@ -49,3 +49,6 @@ cmake-build-*/
 
 # jar
 *.jar
+
+# antlr
+.antlr/

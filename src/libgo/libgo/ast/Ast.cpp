@@ -6,8 +6,16 @@ namespace go::ast {
 
 void PackageName::accept(Visitor &visitor) { visitor.visit(*this); }
 
-void PackageClause::accept(Visitor &Visitor) { Visitor.visit(*this); }
+void PackageClause::accept(Visitor &visitor) { visitor.visit(*this); }
 
-void ImportSpec::accept(Visitor &visitor) { visitor.visit(*this); }
+void ImportPath::accept(Visitor &visitor) { visitor.visit(*this); }
+
+void ImportDecl::accept(Visitor &visitor) { visitor.visit(*this); }
+
+void Type::accept(Visitor &visitor) { visitor.visit(*this); }
+
+void BasicType::accept(Visitor &visitor) { visitor.visit(*this); }
+
+void ArrayType::accept(Visitor &visitor) { visitor.visit(*this); }
 
 } // namespace go::ast
